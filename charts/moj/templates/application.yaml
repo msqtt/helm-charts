@@ -1,0 +1,36 @@
+{{- range .Values.applications }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Release.Name }}-{{ .name }}
+  namespace: {{ $.Release.namespace }}
+  labels:
+    app: {{ .name }}
+spec:
+  replicas: {{ .replicas }}
+  selector:
+    matchLabels:
+      app: {{ .name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .name }}
+    spec:
+      containers:
+      {{- toYaml .containers | nindent 6 }}
+{{- range .services }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.namespace }}
+spec:
+  type: {{ .type }}
+  selector:
+  {{- toYaml .selector | nindent 4}}
+  ports:
+  {{- toYaml .ports | nindent 2}}
+{{- end}}
+{{- end}}

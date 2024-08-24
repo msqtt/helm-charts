@@ -1,0 +1,298 @@
+# Default values for moj.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: default
+
+applications:
+# web-bff-app
+- name: web-bff
+  replicas: 1
+  containers:
+  - name: web-bff
+    image: msqt/moj-web-bff:latest
+    ports:
+    - containerPort: 8080
+    env:
+    - name: DEBUG
+      value: "true"
+    - name: USER_RPC_ADDR
+      value: user-svc:19090
+    - name: CAPTCHA_RPC_ADDR
+      value: user-svc:19090
+    - name: QUESTION_RPC_ADDR
+      value: question-svc:19091
+    - name: GAME_RPC_ADDR
+      value: game-svc:19092
+    - name: RECORD_RPC_ADDR
+      value: record-svc:19093
+  services:
+  - name: web-bff-svc
+    type: ClusterIP
+    selector:
+      app: web-bff
+    ports:
+    - name: http
+      protocol: TCP
+      port: 18080
+      targetPort: 8080
+# user-app
+- name: user
+  replicas: 1
+  containers:
+  - name: user
+    image: msqt/moj-user:latest
+    ports:
+    - containerPort: 9090
+    env:
+    - name: DEBUG
+      value: "true"
+    - name: MONGO_HOST
+      value: mongodb://root:example@localhost:27017/
+    - name: MONGO_DBNAME
+      value: moj
+    - name: EMAIL_FROM_ADDR
+      value: user@example.com
+    - name: EMAIL_SMTP_HOST
+      value: email.example.com
+    - name: EMAIL_SMTP_PORT
+      value: "25"
+    - name: EMAIL_SMTP_SCRT
+      value: secret
+      # - name: CAPTCHA_LIVE_DURATION
+      #   value: 300
+  services:
+  - name: user-svc
+    type: ClusterIP
+    selector:
+      app: user
+    ports:
+    - name: grpc
+      protocol: TCP
+      port: 19090
+      targetPort: 9090
+# question-app
+- name: question
+  replicas: 1
+  containers:
+  - name: question
+    image: msqt/moj-question:latest
+    ports:
+    - containerPort: 9090
+    env:
+    - name: DEBUG
+      value: "true"
+    - name: MONGO_HOST
+      value: mongodb://root:example@localhost:27017/
+    - name: MONGO_DBNAME
+      value: moj
+  services:
+  - name: question-svc
+    type: ClusterIP
+    selector:
+      app: question
+    ports:
+    - name: grpc
+      protocol: TCP
+      port: 19091
+      targetPort: 9090
+# game-app
+- name: game
+  replicas: 1
+  containers:
+  - name: game
+    image: msqt/moj-game:latest
+    ports:
+    - containerPort: 9090
+    env:
+    - name: DEBUG
+      value: "true"
+    - name: MONGO_HOST
+      value: mongodb://root:example@localhost:27017/
+    - name: MONGO_DBNAME
+      value: moj
+    - name: NSQ_LOOKUP_ADDR
+      value: nsqlookupd-svc:24161
+  services:
+  - name: game-svc
+    type: ClusterIP
+    selector:
+      app: game
+    ports:
+    - name: grpc
+      protocol: TCP
+      port: 19092
+      targetPort: 9090
+# record-app
+- name: record
+  replicas: 1
+  containers:
+  - name: record
+    image: msqt/moj-record:latest
+    ports:
+    - containerPort: 9090
+    env:
+    - name: DEBUG
+      value: "true"
+    - name: MONGO_HOST
+      value: mongodb://root:example@localhost:27017/
+    - name: MONGO_DBNAME
+      value: moj
+    - name: QUESTION_RPC_ADDR
+      value: question-svc:19091
+    - name: NSQD_ADDR
+      value: nsqd-svc:24150
+    - name: NSQ_LOOKUP_ADDR
+      value: nsqlookupd-svc:24161
+  services:
+  - name: record-svc
+    type: ClusterIP
+    selector:
+      app: record
+    ports:
+    - name: grpc
+      protocol: TCP
+      port: 19093
+      targetPort: 9090
+# judgement-app
+- name: judgement
+  replicas: 1
+  containers:
+  - name: judgement
+    image: msqt/moj-judgement:latest
+    ports:
+    - containerPort: 9090
+    env:
+    - name: DEBUG
+      value: "true"
+    - name: MONGO_HOST
+      value: mongodb://root:example@localhost:27017/
+    - name: MONGO_DBNAME
+      value: moj
+    - name: SB_JUDGER_RPC_ADDR
+      value: sb-judger-svc:19091
+    - name: NSQD_ADDR
+      value: nsqd-svc:24150
+    - name: NSQ_LOOKUP_ADDR
+      value: nsqlookupd-svc:24161
+  services:
+  - name: judgement-svc
+    type: ClusterIP
+    selector:
+      app: judgement
+    ports:
+    - name: grpc
+      protocol: TCP
+      port: 19094
+      targetPort: 9090
+# sb-judger-infra
+- name: sb-judge
+  replicas: 1
+  containers:
+  - name: user
+    image: msqt/sb-judger:latest
+    securityContext:
+      privileged: true
+    ports:
+    - containerPort: 8080
+    - containerPort: 9090
+  services:
+  - name: sb-judger-svc
+    type: ClusterIP
+    selector:
+      app: sb-judger
+    ports:
+    - name: web-http
+      protocol: TCP
+      port: 28080
+      targetPort: 8080
+    - name: grpc
+      protocol: TCP
+      port: 29090
+      targetPort: 9090
+# nsqd-infra
+- name: nsqd
+  replicas: 1
+  containers:
+  - name: nsqd
+    image: nsqio/nsq:v1.3.0
+    command:
+    - /nsqd
+    - --lookupd-tcp-address=nsqlookupd-svc:24160
+    ports:
+    - containerPort: 4150
+    - containerPort: 4151
+  services:
+  - name: nsqd-svc
+    type: ClusterIP
+    selector:
+      app: nsqd
+    ports:
+    - name: tcp
+      protocol: TCP
+      port: 24150
+      targetPort: 4150
+    - name: http
+      protocol: TCP
+      port: 24151
+      targetPort: 4151
+      # nsqlookupd-infra
+- name: nsqlookupd
+  replicas: 1
+  containers:
+  - name: nsqlookupd
+    image: nsqio/nsq:v1.3.0
+    command: [/nsqlookupd]
+    ports:
+    - containerPort: 4160
+    - containerPort: 4161
+  - name: nsqadmin
+    image: nsqio/nsq:v1.3.0
+    command:
+    - /nsqadmin
+    - --lookupd-http-address=nsqlookupd-svc:24161
+    ports:
+    - containerPort: 4171
+  services:
+  - name: nsqlookupd-svc
+    type: ClusterIP
+    selector:
+      app: nsqlookupd
+    ports:
+    - name: lookup-tcp
+      protocol: TCP
+      port: 24160
+      targetPort: 4160
+    - name: lookup-http
+      protocol: TCP
+      port: 24161
+      targetPort: 4161
+    - name: admin-web
+      protocol: TCP
+      port: 24171
+      targetPort: 4171
+
+gateway:
+  enable: false
+  class:
+    name: moj-trafik
+  listeners:
+  - name: http
+    protocol: HTTP
+    port: 80
+  route:
+    hostnames:
+    - "localhost"
+    rules:
+    - matches:
+      - path:
+          value: /api
+      backendRefs:
+      - name: web-bff-svc
+        port: 18080
+    - matches:
+      - path:
+          value: /nsqadmin
+      backendRefs:
+      - name: nsqlookupd-svc
+        port: 24171
