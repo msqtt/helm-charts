@@ -272,6 +272,21 @@ applications:
       port: 24171
       targetPort: 4171
 
+ingress:
+  enable: true
+  annotations: {}
+  # ingress.kubernetes.io/ssl-redirect: "false"
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-bff-svc
+            port:
+              number: 18080
+
 gateway:
   enable: false
   class:
