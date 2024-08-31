@@ -3,6 +3,16 @@ entries:
   moj:
   - apiVersion: v2
     appVersion: 1.16.0
+    created: "2024-08-31T03:59:18.358021718Z"
+    description: A Helm chart for moj deployment.
+    digest: dbafcbb7731f58b98d185dc04adb4fa104c9688a60d294f98b23bb85bda141f3
+    name: moj
+    type: application
+    urls:
+    - https://github.com/msqtt/helm-charts/releases/download/moj-0.3.0/moj-0.3.0.tgz
+    version: 0.3.0
+  - apiVersion: v2
+    appVersion: 1.16.0
     created: "2024-08-27T12:30:29.249213593Z"
     description: A Helm chart for moj deployment.
     digest: bd7da0643d213df62dca60fe77a6c1e8e1972e0394e23918a6a2ca3bfd941647
@@ -21,4 +31,4 @@ entries:
     urls:
     - https://github.com/msqtt/helm-charts/releases/download/moj-0.1.1/moj-0.1.1.tgz
     version: 0.1.1
-generated: "2024-08-27T12:30:29.24922784Z"
+generated: "2024-08-31T03:59:18.358034091Z"
