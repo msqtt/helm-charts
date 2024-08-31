@@ -113,6 +113,8 @@ applications:
       value: moj
     - name: NSQ_LOOKUP_ADDR
       value: nsqlookupd-svc:24161
+    - name: RECORD_RPC_ADDR
+      value: record-svc:19093
   services:
   - name: game-svc
     type: ClusterIP
@@ -175,6 +177,10 @@ applications:
       value: nsqd-svc:24150
     - name: NSQ_LOOKUP_ADDR
       value: nsqlookupd-svc:24161
+    - name: VALKEY_HOST_ADDR
+      value: 127.0.0.1:6379
+    - name: OSS_PREFIX_URL
+      value: http://127.0.0.1
   services:
   - name: judgement-svc
     type: ClusterIP
